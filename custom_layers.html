@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.29.3">
+    <meta name="project" content="Axon v0.6.0">
+
+    <title>Custom layers — Axon v0.6.0</title>
+    <link rel="stylesheet" href="dist/html-elixir-MB5C7R66.css" />
+
+
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-XRYTXUVD.js"></script>
+    <script src="dist/sidebar_items-78464301.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/html-EHGDP2LQ.js"></script>
+
+
+  </head>
+  <body data-type="extras" class="page-livemd">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<section class="sidebar">
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button" aria-label="Submit Search">
+      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button" aria-label="Cancel Search">
+      <i class="ri-close-line ri-lg" aria-hidden="true" title="Cancel search"></i>
+    </button>
+    <label class="search-label">
+      <p class="sr-only">Search</p>
+      <input name="q" type="text" class="search-input" placeholder="Search..." aria-label="Input your search terms" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+
+      <a href="Axon.html">
+        <img src="assets/logo.png" alt="Axon" class="sidebar-projectImage">
+      </a>
+
+    <div class="sidebar-projectDetails">
+      <a href="Axon.html" class="sidebar-projectName" translate="no">
+Axon
+      </a>
+      <strong class="sidebar-projectVersion" translate="no">
+        v0.6.0
+      </strong>
+    </div>
+    <ul class="sidebar-listNav">
+      <li><a id="extras-list-link" href="#full-list">Pages</a></li>
+
+        <li><a id="modules-list-link" href="#full-list">Modules</a></li>
+
+
+    </ul>
+  </div>
+
+  <div class="gradient"></div>
+  <ul id="full-list"></ul>
+</section>
+
+<section class="content">
+  <output role="status" id="toast"></output>
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+<h1>
+<button class="icon-action display-settings">
+  <i class="ri-settings-3-line"></i>
+  <span class="sr-only">Settings</span>
+</button>
+
+
+    <a href="https://github.com/elixir-nx/axon/blob/v0.6.0/guides/model_creation/custom_layers.livemd#L1" title="View Source" class="icon-action" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+
+  <span>Custom layers</span>
+</h1>
+
+  <div class="livebook-badge-container">
+    <a href="#" class="livebook-badge">
+      <img src="https://livebook.dev/badge/v1/blue.svg" alt="Run in Livebook" width="150" />
+    </a>
+  </div>
+
+<pre><code class="makeup elixir" translate="no"><span class="nc">Mix</span><span class="o">.</span><span class="n">install</span><span class="p" data-group-id="6399545475-1">(</span><span class="p" data-group-id="6399545475-2">[</span><span class="w">
+  </span><span class="p" data-group-id="6399545475-3">{</span><span class="ss">:axon</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&gt;= 0.5.0&quot;</span><span class="p" data-group-id="6399545475-3">}</span><span class="p">,</span><span class="w">
+  </span><span class="p" data-group-id="6399545475-4">{</span><span class="ss">:kino</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&gt;= 0.9.0&quot;</span><span class="p" data-group-id="6399545475-4">}</span><span class="w">
+</span><span class="p" data-group-id="6399545475-2">]</span><span class="p" data-group-id="6399545475-1">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="ss">:ok</span></code></pre><h2 id="creating-custom-layers" class="section-heading">
+  <a href="#creating-custom-layers" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
+  <p class="sr-only">creating-custom-layers</p>
+  </a>
+  Creating custom layers
+</h2>
+<p>While Axon has a plethora of built-in layers, more than likely you'll run into a case where you need something not provided by the framework. In these instances, you can use <em>custom layers</em>.</p><p>To Axon, layers are really just <code class="inline">defn</code> implementations with special Axon inputs. Every layer in Axon (including the built-in layers), are implemented with the <a href="Axon.html#layer/3"><code class="inline">Axon.layer/3</code></a> function. The API of <a href="Axon.html#layer/3"><code class="inline">Axon.layer/3</code></a> intentionally mirrors the API of <a href="https://hexdocs.pm/elixir/Kernel.html#apply/2"><code class="inline">Kernel.apply/2</code></a>. To declare a custom layer you need 2 things:</p><ol><li>A <code class="inline">defn</code> implementation</li><li>Inputs</li></ol><p>The <code class="inline">defn</code> implementation looks like any other <code class="inline">defn</code> you'd write; however, it must always account for additional <code class="inline">opts</code> as an argument:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">CustomLayers0</span><span class="w"> </span><span class="k" data-group-id="3977942874-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Nx.Defn</span><span class="w">
+
+  </span><span class="kd">defn</span><span class="w"> </span><span class="nf">my_layer</span><span class="p" data-group-id="3977942874-2">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="w"> </span><span class="o">\\</span><span class="w"> </span><span class="p" data-group-id="3977942874-3">[</span><span class="p" data-group-id="3977942874-3">]</span><span class="p" data-group-id="3977942874-2">)</span><span class="w"> </span><span class="k" data-group-id="3977942874-4">do</span><span class="w">
+    </span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">keyword!</span><span class="p" data-group-id="3977942874-5">(</span><span class="n">opts</span><span class="p">,</span><span class="w"> </span><span class="ss">mode</span><span class="p">:</span><span class="w"> </span><span class="ss">:train</span><span class="p">,</span><span class="w"> </span><span class="ss">alpha</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p" data-group-id="3977942874-5">)</span><span class="w">
+
+    </span><span class="n">input</span><span class="w">
+    </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">sin</span><span class="p" data-group-id="3977942874-6">(</span><span class="p" data-group-id="3977942874-6">)</span><span class="w">
+    </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">multiply</span><span class="p" data-group-id="3977942874-7">(</span><span class="n">opts</span><span class="p" data-group-id="3977942874-8">[</span><span class="ss">:alpha</span><span class="p" data-group-id="3977942874-8">]</span><span class="p" data-group-id="3977942874-7">)</span><span class="w">
+  </span><span class="k" data-group-id="3977942874-4">end</span><span class="w">
+</span><span class="k" data-group-id="3977942874-1">end</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="2100840259-1">{</span><span class="ss">:module</span><span class="p">,</span><span class="w"> </span><span class="nc">CustomLayers0</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2100840259-2">&lt;&lt;</span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">79</span><span class="p">,</span><span class="w"> </span><span class="mi">82</span><span class="p">,</span><span class="w"> </span><span class="mi">49</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="2100840259-2">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="2100840259-1">}</span></code></pre><p>Regardless of the options you configure your layer to accept, the <code class="inline">defn</code> implementation will always receive a <code class="inline">:mode</code> option indicating whether or not the model is running in training or inference mode. You can customize the behavior of your layer depending on the mode.</p><p>With an implementation defined, you need only to call <a href="Axon.html#layer/3"><code class="inline">Axon.layer/3</code></a> to apply our custom layer to an Axon input:</p><pre><code class="makeup elixir" translate="no"><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">input</span><span class="p" data-group-id="0844060785-1">(</span><span class="s">&quot;data&quot;</span><span class="p" data-group-id="0844060785-1">)</span><span class="w">
+
+</span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">layer</span><span class="p" data-group-id="0844060785-2">(</span><span class="o">&amp;</span><span class="nc">CustomLayers0</span><span class="o">.</span><span class="n">my_layer</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0844060785-3">[</span><span class="n">input</span><span class="p" data-group-id="0844060785-3">]</span><span class="p" data-group-id="0844060785-2">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="8422880604-1">#</span><span class="nc" data-group-id="8422880604-1">Axon</span><span class="p" data-group-id="8422880604-1">&lt;</span><span class="w">
+  </span><span class="ss">inputs</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8422880604-2">%{</span><span class="s">&quot;data&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="8422880604-2">}</span><span class="w">
+  </span><span class="ss">outputs</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;custom_0&quot;</span><span class="w">
+  </span><span class="ss">nodes</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w">
+</span><span class="p" data-group-id="8422880604-1">&gt;</span></code></pre><p>Now you can inspect and execute your model as normal:</p><pre><code class="makeup elixir" translate="no"><span class="n">template</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">template</span><span class="p" data-group-id="4667552695-1">(</span><span class="p" data-group-id="4667552695-2">{</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p" data-group-id="4667552695-2">}</span><span class="p">,</span><span class="w"> </span><span class="ss">:f32</span><span class="p" data-group-id="4667552695-1">)</span><span class="w">
+</span><span class="nc">Axon.Display</span><span class="o">.</span><span class="n">as_graph</span><span class="p" data-group-id="4667552695-3">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">template</span><span class="p" data-group-id="4667552695-3">)</span></code></pre><pre><code class="mermaid output">graph TD;
+3[/&quot;data (:input) {2, 8}&quot;/];
+4[&quot;custom_0 (:custom) {2, 8}&quot;];
+3 --&gt; 4;</code></pre><p>Notice that by default custom layers render with a default operation marked as <code class="inline">:custom</code>. This can make it difficult to determine which layer is which during inspection. You can control the rendering by passing <code class="inline">:op_name</code> to <a href="Axon.html#layer/3"><code class="inline">Axon.layer/3</code></a>:</p><pre><code class="makeup elixir" translate="no"><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">layer</span><span class="p" data-group-id="3967555732-1">(</span><span class="o">&amp;</span><span class="nc">CustomLayers0</span><span class="o">.</span><span class="n">my_layer</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3967555732-2">[</span><span class="n">input</span><span class="p" data-group-id="3967555732-2">]</span><span class="p">,</span><span class="w"> </span><span class="ss">op_name</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_layer</span><span class="p" data-group-id="3967555732-1">)</span><span class="w">
+
+</span><span class="nc">Axon.Display</span><span class="o">.</span><span class="n">as_graph</span><span class="p" data-group-id="3967555732-3">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">template</span><span class="p" data-group-id="3967555732-3">)</span></code></pre><pre><code class="mermaid output">graph TD;
+3[/&quot;data (:input) {2, 8}&quot;/];
+5[&quot;my_layer_0 (:my_layer) {2, 8}&quot;];
+3 --&gt; 5;</code></pre><p>You can also control the name of your layer via the <code class="inline">:name</code> option. All other options are forwarded to the layer implementation function:</p><pre><code class="makeup elixir" translate="no"><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w">
+  </span><span class="nc">Axon</span><span class="o">.</span><span class="n">layer</span><span class="p" data-group-id="1268818925-1">(</span><span class="o">&amp;</span><span class="nc">CustomLayers0</span><span class="o">.</span><span class="n">my_layer</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1268818925-2">[</span><span class="n">input</span><span class="p" data-group-id="1268818925-2">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;layer&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">op_name</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_layer</span><span class="p">,</span><span class="w">
+    </span><span class="ss">alpha</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="w">
+  </span><span class="p" data-group-id="1268818925-1">)</span><span class="w">
+
+</span><span class="nc">Axon.Display</span><span class="o">.</span><span class="n">as_graph</span><span class="p" data-group-id="1268818925-3">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">template</span><span class="p" data-group-id="1268818925-3">)</span></code></pre><pre><code class="mermaid output">graph TD;
+3[/&quot;data (:input) {2, 8}&quot;/];
+6[&quot;layer (:my_layer) {2, 8}&quot;];
+3 --&gt; 6;</code></pre><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="3555669983-1">{</span><span class="n">init_fn</span><span class="p">,</span><span class="w"> </span><span class="n">predict_fn</span><span class="p" data-group-id="3555669983-1">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">build</span><span class="p" data-group-id="3555669983-2">(</span><span class="n">out</span><span class="p" data-group-id="3555669983-2">)</span><span class="w">
+</span><span class="n">params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">init_fn</span><span class="o">.</span><span class="p" data-group-id="3555669983-3">(</span><span class="n">template</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3555669983-4">%{</span><span class="p" data-group-id="3555669983-4">}</span><span class="p" data-group-id="3555669983-3">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="1878036082-1">%{</span><span class="p" data-group-id="1878036082-1">}</span></code></pre><pre><code class="makeup elixir" translate="no"><span class="n">predict_fn</span><span class="o">.</span><span class="p" data-group-id="0366922699-1">(</span><span class="n">params</span><span class="p">,</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">iota</span><span class="p" data-group-id="0366922699-2">(</span><span class="p" data-group-id="0366922699-3">{</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p" data-group-id="0366922699-3">}</span><span class="p">,</span><span class="w"> </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="ss">:f32</span><span class="p" data-group-id="0366922699-2">)</span><span class="p" data-group-id="0366922699-1">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="9112463784-1">#</span><span class="nc" data-group-id="9112463784-1">Nx.Tensor</span><span class="p" data-group-id="9112463784-1">&lt;</span><span class="w">
+  </span><span class="n">f32</span><span class="p" data-group-id="9112463784-2">[</span><span class="mi">2</span><span class="p" data-group-id="9112463784-2">]</span><span class="p" data-group-id="9112463784-3">[</span><span class="mi">8</span><span class="p" data-group-id="9112463784-3">]</span><span class="w">
+  </span><span class="p" data-group-id="9112463784-4">[</span><span class="w">
+    </span><span class="p" data-group-id="9112463784-5">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.6829419136047363</span><span class="p">,</span><span class="w"> </span><span class="mf">1.8185948133468628</span><span class="p">,</span><span class="w"> </span><span class="mf">0.28224000334739685</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">1.513604998588562</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">1.9178485870361328</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">0.558830976486206</span><span class="p">,</span><span class="w"> </span><span class="mf">1.3139731884002686</span><span class="p" data-group-id="9112463784-5">]</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="9112463784-6">[</span><span class="mf">1.978716492652893</span><span class="p">,</span><span class="w"> </span><span class="mf">0.8242369890213013</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">1.0880422592163086</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">1.9999804496765137</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mf">1.073145866394043</span><span class="p">,</span><span class="w"> </span><span class="mf">0.8403340578079224</span><span class="p">,</span><span class="w"> </span><span class="mf">1.9812147617340088</span><span class="p">,</span><span class="w"> </span><span class="mf">1.3005757331848145</span><span class="p" data-group-id="9112463784-6">]</span><span class="w">
+  </span><span class="p" data-group-id="9112463784-4">]</span><span class="w">
+</span><span class="p" data-group-id="9112463784-1">&gt;</span></code></pre><p>Notice that this model does not have any trainable parameters because none of the layers have trainable parameters. You can introduce trainable parameters by passing inputs created with <a href="Axon.html#param/3"><code class="inline">Axon.param/3</code></a> to <a href="Axon.html#layer/3"><code class="inline">Axon.layer/3</code></a>. For example, you can modify your original custom layer to take an additional trainable parameter:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">CustomLayers1</span><span class="w"> </span><span class="k" data-group-id="7131174196-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Nx.Defn</span><span class="w">
+
+  </span><span class="kd">defn</span><span class="w"> </span><span class="nf">my_layer</span><span class="p" data-group-id="7131174196-2">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="p">,</span><span class="w"> </span><span class="c">_opts</span><span class="w"> </span><span class="o">\\</span><span class="w"> </span><span class="p" data-group-id="7131174196-3">[</span><span class="p" data-group-id="7131174196-3">]</span><span class="p" data-group-id="7131174196-2">)</span><span class="w"> </span><span class="k" data-group-id="7131174196-4">do</span><span class="w">
+    </span><span class="n">input</span><span class="w">
+    </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">sin</span><span class="p" data-group-id="7131174196-5">(</span><span class="p" data-group-id="7131174196-5">)</span><span class="w">
+    </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">multiply</span><span class="p" data-group-id="7131174196-6">(</span><span class="n">alpha</span><span class="p" data-group-id="7131174196-6">)</span><span class="w">
+  </span><span class="k" data-group-id="7131174196-4">end</span><span class="w">
+</span><span class="k" data-group-id="7131174196-1">end</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="1976019099-1">{</span><span class="ss">:module</span><span class="p">,</span><span class="w"> </span><span class="nc">CustomLayers1</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1976019099-2">&lt;&lt;</span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">79</span><span class="p">,</span><span class="w"> </span><span class="mi">82</span><span class="p">,</span><span class="w"> </span><span class="mi">49</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="1976019099-2">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="1976019099-1">}</span></code></pre><p>And then construct the layer with a regular Axon input and a trainable parameter:</p><pre><code class="makeup elixir" translate="no"><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">param</span><span class="p" data-group-id="1205523231-1">(</span><span class="s">&quot;alpha&quot;</span><span class="p">,</span><span class="w"> </span><span class="k" data-group-id="1205523231-2">fn</span><span class="w"> </span><span class="bp">_</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p" data-group-id="1205523231-3">{</span><span class="p" data-group-id="1205523231-3">}</span><span class="w"> </span><span class="k" data-group-id="1205523231-2">end</span><span class="p" data-group-id="1205523231-1">)</span><span class="w">
+
+</span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">layer</span><span class="p" data-group-id="1205523231-4">(</span><span class="o">&amp;</span><span class="nc">CustomLayers1</span><span class="o">.</span><span class="n">my_layer</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1205523231-5">[</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="p" data-group-id="1205523231-5">]</span><span class="p">,</span><span class="w"> </span><span class="ss">op_name</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_layer</span><span class="p" data-group-id="1205523231-4">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="4177266647-1">#</span><span class="nc" data-group-id="4177266647-1">Axon</span><span class="p" data-group-id="4177266647-1">&lt;</span><span class="w">
+  </span><span class="ss">inputs</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="4177266647-2">%{</span><span class="s">&quot;data&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="4177266647-2">}</span><span class="w">
+  </span><span class="ss">outputs</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_layer_0&quot;</span><span class="w">
+  </span><span class="ss">nodes</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w">
+</span><span class="p" data-group-id="4177266647-1">&gt;</span></code></pre><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="2559316261-1">{</span><span class="n">init_fn</span><span class="p">,</span><span class="w"> </span><span class="n">predict_fn</span><span class="p" data-group-id="2559316261-1">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">build</span><span class="p" data-group-id="2559316261-2">(</span><span class="n">out</span><span class="p" data-group-id="2559316261-2">)</span><span class="w">
+</span><span class="n">params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">init_fn</span><span class="o">.</span><span class="p" data-group-id="2559316261-3">(</span><span class="n">template</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2559316261-4">%{</span><span class="p" data-group-id="2559316261-4">}</span><span class="p" data-group-id="2559316261-3">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="5342970347-1">%{</span><span class="w">
+  </span><span class="s">&quot;my_layer_0&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="5342970347-2">%{</span><span class="w">
+    </span><span class="s">&quot;alpha&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="5342970347-3">#</span><span class="nc" data-group-id="5342970347-3">Nx.Tensor</span><span class="p" data-group-id="5342970347-3">&lt;</span><span class="w">
+      </span><span class="n">f32</span><span class="w">
+      </span><span class="o">-</span><span class="mf">1.2601861953735352</span><span class="w">
+    </span><span class="p" data-group-id="5342970347-3">&gt;</span><span class="w">
+  </span><span class="p" data-group-id="5342970347-2">}</span><span class="w">
+</span><span class="p" data-group-id="5342970347-1">}</span></code></pre><p>Notice how your model now initializes with a trainable parameter <code class="inline">&quot;alpha&quot;</code> for your custom layer. Each parameter requires a unique (per-layer) string name and a function which determines the parameter's shape from the layer's input shapes.</p><p>If you plan on re-using custom layers in many locations, it's recommended that you wrap them in an Elixir function as an interface:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">CustomLayers2</span><span class="w"> </span><span class="k" data-group-id="5538781640-1">do</span><span class="w">
+  </span><span class="kn">import</span><span class="w"> </span><span class="nc">Nx.Defn</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">my_layer</span><span class="p" data-group-id="5538781640-2">(</span><span class="p" data-group-id="5538781640-3">%</span><span class="nc" data-group-id="5538781640-3">Axon</span><span class="p" data-group-id="5538781640-3">{</span><span class="p" data-group-id="5538781640-3">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="w"> </span><span class="o">\\</span><span class="w"> </span><span class="p" data-group-id="5538781640-4">[</span><span class="p" data-group-id="5538781640-4">]</span><span class="p" data-group-id="5538781640-2">)</span><span class="w"> </span><span class="k" data-group-id="5538781640-5">do</span><span class="w">
+    </span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Keyword</span><span class="o">.</span><span class="n">validate!</span><span class="p" data-group-id="5538781640-6">(</span><span class="n">opts</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5538781640-7">[</span><span class="ss">:name</span><span class="p" data-group-id="5538781640-7">]</span><span class="p" data-group-id="5538781640-6">)</span><span class="w">
+    </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">param</span><span class="p" data-group-id="5538781640-8">(</span><span class="s">&quot;alpha&quot;</span><span class="p">,</span><span class="w"> </span><span class="k" data-group-id="5538781640-9">fn</span><span class="w"> </span><span class="bp">_</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p" data-group-id="5538781640-10">{</span><span class="p" data-group-id="5538781640-10">}</span><span class="w"> </span><span class="k" data-group-id="5538781640-9">end</span><span class="p" data-group-id="5538781640-8">)</span><span class="w">
+
+    </span><span class="nc">Axon</span><span class="o">.</span><span class="n">layer</span><span class="p" data-group-id="5538781640-11">(</span><span class="o">&amp;</span><span class="n">my_layer_impl</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5538781640-12">[</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="p" data-group-id="5538781640-12">]</span><span class="p">,</span><span class="w"> </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="5538781640-13">[</span><span class="ss">:name</span><span class="p" data-group-id="5538781640-13">]</span><span class="p">,</span><span class="w"> </span><span class="ss">op_name</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_layer</span><span class="p" data-group-id="5538781640-11">)</span><span class="w">
+  </span><span class="k" data-group-id="5538781640-5">end</span><span class="w">
+
+  </span><span class="kd">defnp</span><span class="w"> </span><span class="nf">my_layer_impl</span><span class="p" data-group-id="5538781640-14">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="p">,</span><span class="w"> </span><span class="c">_opts</span><span class="w"> </span><span class="o">\\</span><span class="w"> </span><span class="p" data-group-id="5538781640-15">[</span><span class="p" data-group-id="5538781640-15">]</span><span class="p" data-group-id="5538781640-14">)</span><span class="w"> </span><span class="k" data-group-id="5538781640-16">do</span><span class="w">
+    </span><span class="n">input</span><span class="w">
+    </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">sin</span><span class="p" data-group-id="5538781640-17">(</span><span class="p" data-group-id="5538781640-17">)</span><span class="w">
+    </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Nx</span><span class="o">.</span><span class="n">multiply</span><span class="p" data-group-id="5538781640-18">(</span><span class="n">alpha</span><span class="p" data-group-id="5538781640-18">)</span><span class="w">
+  </span><span class="k" data-group-id="5538781640-16">end</span><span class="w">
+</span><span class="k" data-group-id="5538781640-1">end</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="7638620274-1">{</span><span class="ss">:module</span><span class="p">,</span><span class="w"> </span><span class="nc">CustomLayers2</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7638620274-2">&lt;&lt;</span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">79</span><span class="p">,</span><span class="w"> </span><span class="mi">82</span><span class="p">,</span><span class="w"> </span><span class="mi">49</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="n">...</span><span class="p" data-group-id="7638620274-2">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="no">true</span><span class="p" data-group-id="7638620274-1">}</span></code></pre><pre><code class="makeup elixir" translate="no"><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w">
+  </span><span class="n">input</span><span class="w">
+  </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">CustomLayers2</span><span class="o">.</span><span class="n">my_layer</span><span class="p" data-group-id="8712489544-1">(</span><span class="p" data-group-id="8712489544-1">)</span><span class="w">
+  </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">CustomLayers2</span><span class="o">.</span><span class="n">my_layer</span><span class="p" data-group-id="8712489544-2">(</span><span class="p" data-group-id="8712489544-2">)</span><span class="w">
+  </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Axon</span><span class="o">.</span><span class="n">dense</span><span class="p" data-group-id="8712489544-3">(</span><span class="mi">1</span><span class="p" data-group-id="8712489544-3">)</span></code></pre><pre><code class="makeup output" translate="no"><span class="p" data-group-id="6187384825-1">#</span><span class="nc" data-group-id="6187384825-1">Axon</span><span class="p" data-group-id="6187384825-1">&lt;</span><span class="w">
+  </span><span class="ss">inputs</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6187384825-2">%{</span><span class="s">&quot;data&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="6187384825-2">}</span><span class="w">
+  </span><span class="ss">outputs</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dense_0&quot;</span><span class="w">
+  </span><span class="ss">nodes</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="w">
+</span><span class="p" data-group-id="6187384825-1">&gt;</span></code></pre><pre><code class="makeup elixir" translate="no"><span class="nc">Axon.Display</span><span class="o">.</span><span class="n">as_graph</span><span class="p" data-group-id="9100497083-1">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">template</span><span class="p" data-group-id="9100497083-1">)</span></code></pre><pre><code class="mermaid output">graph TD;
+3[/&quot;data (:input) {2, 8}&quot;/];
+8[&quot;my_layer_0 (:my_layer) {2, 8}&quot;];
+9[&quot;my_layer_1 (:my_layer) {2, 8}&quot;];
+10[&quot;dense_0 (:dense) {2, 1}&quot;];
+9 --&gt; 10;
+8 --&gt; 9;
+3 --&gt; 8;</code></pre>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="multi_input_multi_output_models.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Multi-input / multi-output models
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="model_hooks.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Model hooks
+        </span>
+      </a>
+
+  </div>
+</div>
+      <footer class="footer">
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/axon/0.6.0" class="footer-hex-package">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/axon/0.6.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/axon/0.6.0/show/guides/model_creation/custom_layers.livemd">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+              Search HexDocs
+            </button>
+
+              <a href="Axon.epub" title="ePub version">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.29.3) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- Render math with KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css" integrity="sha384-t5CR+zwDAROtph0PXGte6ia8heboACF9R5l/DiY+WZ3P2lxNgvJkQk5n7GPvLMYw" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js" integrity="sha384-FaFLTlohFghEIZkw6VGwmf9ISTubWAVYW8tG8+w2LAIftJEULZABrF9PPFv+tVkH" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js" integrity="sha384-bHBqxz8fokvgoJ/sc17HODNxa42TlaEhB+w8ZJXTc2nZf1VgEaFZeZvT4Mznfz0v" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ]
+    });
+  });
+</script>
+
+<!-- Render diagrams with Mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@8.13.3/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    mermaid.initialize({ startOnLoad: false });
+    let id = 0;
+    for (const codeEl of document.querySelectorAll("pre code.mermaid")) {
+      const preEl = codeEl.parentElement;
+      const graphDefinition = codeEl.textContent;
+      const graphEl = document.createElement("div");
+      const graphId = "mermaid-graph-" + id++;
+      mermaid.render(graphId, graphDefinition, function (svgSource, bindListeners) {
+        graphEl.innerHTML = svgSource;
+        bindListeners && bindListeners(graphEl);
+        preEl.insertAdjacentElement("afterend", graphEl);
+        preEl.remove();
+      });
+    }
+  });
+</script>
+
+  </body>
+</html>

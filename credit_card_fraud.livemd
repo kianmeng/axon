@@ -1,0 +1,204 @@
+# Classifying fraudulent transactions
+
+```elixir
+Mix.install([
+  {:axon, "~> 0.3.0"},
+  {:nx, "~> 0.4.0", override: true},
+  {:exla, "~> 0.4.0"},
+  {:explorer, "~> 0.3.1"},
+  {:kino, "~> 0.7.0"}
+])
+
+Nx.Defn.default_options(compiler: EXLA)
+Nx.global_default_backend(EXLA.Backend)
+
+alias Explorer.{DataFrame, Series}
+```
+
+## Introduction
+
+This time we will examine the Credit Card Fraud Dataset. Due to confidentiality, the original data were preprocessed by principal component analysis (PCA), and then 31 principal components were selected for the final data set. The dataset is highly imbalanced. The positive class (frauds) account for 0.172% of all transactions. Eventually, we will create a classifier which has not only great accuracy but, what is even more important, a high _recall_ and _precision_ - two metrics that are much more indicative of performance with imbalanced classification problems.
+
+## Data processing
+
+The first step is to prepare the data for training and evaluation. Please download the dataset in the CSV format from https://www.kaggle.com/mlg-ulb/creditcardfraud (this requires a Kaggla account). Once done, put the file path in the input below.
+
+```elixir
+data_path_input = Kino.Input.text("Data path (CSV)")
+```
+
+Now, let's read the data into an `Explorer.Dataframe`:
+
+```elixir
+data_path = Kino.Input.read(data_path_input)
+
+df = DataFrame.from_csv!(data_path, dtypes: [{"Time", :float}])
+```
+
+For further processing, we will need a couple helper functions. We will group them in a module for convenience.
+
+```elixir
+defmodule CredidCard.Data do
+  import Nx.Defn
+
+  def split_train_test(df, portion) do
+    num_examples = DataFrame.n_rows(df)
+    num_train = ceil(portion * num_examples)
+    num_test = num_examples - num_train
+
+    train = DataFrame.slice(df, 0, num_train)
+    test = DataFrame.slice(df, num_train, num_test)
+    {train, test}
+  end
+
+  def split_features_targets(df) do
+    features = DataFrame.select(df, &(&1 == "Class"), :drop)
+    targets = DataFrame.select(df, &(&1 == "Class"), :keep)
+    {features, targets}
+  end
+
+  def df_to_tensor(df) do
+    df
+    |> DataFrame.names()
+    |> Enum.map(&Series.to_tensor(df[&1]))
+    |> Nx.stack(axis: 1)
+  end
+
+  defn normalize_features(tensor) do
+    max =
+      tensor
+      |> Nx.abs()
+      |> Nx.reduce_max(axes: [0], keep_axes: true)
+
+    tensor / max
+  end
+end
+```
+
+With that, we can start converting the data into the desired format. First, we split the data into training and test data (in proportion 80% into a training set and 20% into a test set).
+
+```elixir
+{train_df, test_df} = CredidCard.Data.split_train_test(df, 0.8)
+{DataFrame.n_rows(train_df), DataFrame.n_rows(test_df)}
+```
+
+Next, we separate features from labels and convert both to tensors. In case of features we additionally normalize each of them, dividing by the maximum absolute value of that feature.
+
+```elixir
+{train_features, train_targets} = CredidCard.Data.split_features_targets(train_df)
+{test_features, test_targets} = CredidCard.Data.split_features_targets(test_df)
+
+train_inputs =
+  train_features
+  |> CredidCard.Data.df_to_tensor()
+  |> CredidCard.Data.normalize_features()
+
+test_inputs =
+  test_features
+  |> CredidCard.Data.df_to_tensor()
+  |> CredidCard.Data.normalize_features()
+
+train_targets = CredidCard.Data.df_to_tensor(train_targets)
+test_targets = CredidCard.Data.df_to_tensor(test_targets)
+
+:ok
+```
+
+## Building the model
+
+Our model for predicting whether a transaction was fraudulent or not is a dense neural network. It consists of two dense layers with 256 neurons, ReLU activation functions, one dropout layer, and a dense layer with one neuron (since the problem is a binary prediction) followed by a sigmoid activation function.
+
+```elixir
+model =
+  Axon.input("input")
+  |> Axon.dense(256)
+  |> Axon.relu()
+  |> Axon.dense(256)
+  |> Axon.relu()
+  |> Axon.dropout(rate: 0.3)
+  |> Axon.dense(1)
+  |> Axon.sigmoid()
+```
+
+## Training our model
+
+Now we have both data and model architecture prepared, it's time to train!
+
+Note the disproportion in the data samples:
+
+```elixir
+fraud = Nx.sum(train_targets) |> Nx.to_number()
+legit = Nx.size(train_targets) - fraud
+
+batched_train_inputs = Nx.to_batched(train_inputs, 2048)
+batched_train_targets = Nx.to_batched(train_targets, 2048)
+batched_train = Stream.zip(batched_train_inputs, batched_train_targets)
+
+IO.puts("# of legit transactions (train): #{legit}")
+IO.puts("# of fraudulent transactions (train): #{fraud}")
+IO.puts("% fraudlent transactions (train): #{100 * (fraud / (legit + fraud))}%")
+```
+
+As always, we define our train loop. We are using _binary cross-entropy_ as our loss function and Adam as the optimizer with a learning rate of 0.01. Then we immediately start the training passing our train portion of the dataset.
+
+```elixir
+loss =
+  &Axon.Losses.binary_cross_entropy(
+    &1,
+    &2,
+    negative_weight: 1 / legit,
+    positive_weight: 1 / fraud,
+    reduction: :mean
+  )
+
+optimizer = Polaris.Optimizers.adam(learning_rate: 1.0e-2)
+
+params =
+  model
+  |> Axon.Loop.trainer(loss, optimizer)
+  |> Axon.Loop.run(batched_train, %{}, epochs: 30, compiler: EXLA)
+
+:ok
+```
+
+## Model evaluation
+
+After the training, there is only one thing left: testing. Here, we will focus on the number of true positive, true negative, false positive, and false negative values, but also on the likelihood of denying legit and fraudulent transactions.
+
+```elixir
+batched_test_inputs = Nx.to_batched(test_inputs, 2048)
+batched_test_targets = Nx.to_batched(test_targets, 2048)
+batched_test = Stream.zip(batched_test_inputs, batched_test_targets)
+
+summarize = fn %Axon.Loop.State{metrics: metrics} = state ->
+  legit_transactions_declined = Nx.to_number(metrics["fp"])
+  legit_transactions_accepted = Nx.to_number(metrics["tn"])
+  fraud_transactions_accepted = Nx.to_number(metrics["fn"])
+  fraud_transactions_declined = Nx.to_number(metrics["tp"])
+  total_fraud = fraud_transactions_declined + fraud_transactions_accepted
+  total_legit = legit_transactions_declined + legit_transactions_accepted
+
+  fraud_denial_percent = 100 * (fraud_transactions_declined / total_fraud)
+  legit_denial_percent = 100 * (legit_transactions_declined / total_legit)
+
+  IO.write("\n")
+  IO.puts("Legit Transactions Declined: #{legit_transactions_declined}")
+  IO.puts("Fraudulent Transactions Caught: #{fraud_transactions_declined}")
+  IO.puts("Fraudulent Transactions Missed: #{fraud_transactions_accepted}")
+  IO.puts("Likelihood of catching fraud: #{fraud_denial_percent}%")
+  IO.puts("Likelihood of denying legit transaction: #{legit_denial_percent}%")
+
+  {:continue, state}
+end
+
+model
+|> Axon.Loop.evaluator()
+|> Axon.Loop.metric(:true_positives, "tp", :running_sum)
+|> Axon.Loop.metric(:true_negatives, "tn", :running_sum)
+|> Axon.Loop.metric(:false_positives, "fp", :running_sum)
+|> Axon.Loop.metric(:false_negatives, "fn", :running_sum)
+|> Axon.Loop.handle(:epoch_completed, summarize)
+|> Axon.Loop.run(batched_test, params, compiler: EXLA)
+
+:ok
+```
